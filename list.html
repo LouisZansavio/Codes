@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <title>Lista de Pessoas</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Lista de Pessoas</h1>
+        <a href="register.html" class="waves-effect waves-light btn">Voltar para o Cadastro</a>
+        <ul class="collection" id="pessoas-list">
+            <!-- A lista de registros será preenchida aqui -->
+        </ul>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        M.AutoInit();
+
+        // Função para carregar a lista de pessoas
+        function loadUsers() {
+            fetch('api.php', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const pessoasList = document.getElementById('pessoas-list');
+                pessoasList.innerHTML = '';
+
+                if (data.length > 0) {
+                    data.forEach(pessoa => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'collection-item';
+                        listItem.innerHTML = `
+                        <div>
+                            <span>Nome: ${pessoa.username}</span><br>
+                            <span>Profissão: ${pessoa.profession}</span><br>
+                            <span>Idade: ${pessoa.age}</span><br> <!-- Adiciona a idade -->
+                            <span>Sexo: ${pessoa.gender}</span><br> <!-- Adiciona o sexo -->
+                            <a class="waves-effect waves-light btn" href="register.html?id=${pessoa.id}">
+                                <i class="material-icons">edit</i> Editar
+                            </a>
+                            <a class="waves-effect waves-light btn" href="#" onclick="excluirPessoa(${pessoa.id})">
+                                <i class="material-icons">delete</i> Excluir
+                            </a>
+                        </div>
+                        `;
+                        pessoasList.appendChild(listItem);
+                    });
+                } else {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'collection-item';
+                    listItem.textContent = 'Nenhum registro encontrado';
+                    pessoasList.appendChild(listItem);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao carregar a lista de pessoas.');
+            });
+        }
+
+        function excluirPessoa(id) {
+            if (confirm('Tem certeza de que deseja excluir esta pessoa?')) {
+                fetch(`api.php?id=${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadUsers(); // Recarregar a lista após a exclusão
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao excluir a pessoa.');
+                });
+            }
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>
